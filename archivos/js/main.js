@@ -248,7 +248,6 @@ function AbrirModal() {
 	div.id = 'modalProducto';
 	div.setAttribute('class', 'modal');
 
-	//No me gusta no poder seleccionar el texto. Luego lo pienso más.
 	div.addEventListener('click', function (e) {
 		if (e.path.length <= 5) {
 			div.remove();
@@ -262,7 +261,7 @@ function AbrirModal() {
 
 	let a = d.createElement('a');
 	a.href = 'javascript:void(0)';
-	a.addEventListener('click', function (e) {
+	a.addEventListener('click', function () {
 		div.remove();
 	});
 	a.innerHTML = 'X';
@@ -292,7 +291,10 @@ function AbrirModal() {
 	let button = d.createElement('button');
 	button.dataset.id = this.dataset.id;
 	button.dataset.precio = precio;
-	button.onclick = AgregarACarrito;
+	button.addEventListener('click', AgregarACarrito);
+	button.addEventListener('click', function () {
+		div.remove();
+	}, true);
 	button.innerHTML = 'Agregar';
 	container.appendChild(button);
 
@@ -566,9 +568,9 @@ function accederACheckout() {
 	select.name = 'formMetodoDePago';
 
 	/*
-	* Tengo que agregarle una función que se llame cada vez que cambia el valor del select,
-	* para detectar si el selector de cuotas va enabled o disabled
-	*/
+	 * Tengo que agregarle una función que se llame cada vez que cambia el valor del select,
+	 * para detectar si el selector de cuotas va enabled o disabled
+	 */
 
 	let option = d.createElement('option');
 	option.value = 'mercadopago';
@@ -648,7 +650,7 @@ function accederACheckout() {
 	//botonFinalizarCompra.addEventListener('click', armarMainSectionCatalogo);
 
 	formularioCheckout.appendChild(botonFinalizarCompra);
-	
+
 
 	/**
 	 * 
