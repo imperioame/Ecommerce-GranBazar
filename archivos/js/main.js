@@ -20,6 +20,7 @@ let agregoProductos = false;
 let productosEnCarrito = [];
 let cantidadesPorProductoEnCarrito = [];
 let mostrandoCarrito;
+let enCheckout = false;
 
 
 
@@ -28,7 +29,10 @@ let mostrandoCarrito;
  */
 
 function armarMainSectionCatalogo() {
+	//Función que desarrlla el html básico del catálogo,
+	//y llama a las funcinoes de carga de contenido
 	mostrandoCarrito = false;
+	enCheckout = false;
 
 	//Primero me aseguro que esté vacío
 	while (main.firstChild) {
@@ -54,10 +58,12 @@ function armarMainSectionCatalogo() {
 
 }
 
-
-
 window.onload = armarMainSectionCatalogo;
 
+
+/**
+ * Funciones de UI
+ */
 
 function popularCatalogo() {
 	// Armo el catálogo de productos en el front
@@ -74,6 +80,7 @@ function popularCatalogo() {
 		img.alt = producto.nombre;
 		img.dataset.id = producto.id;
 		img.onclick = AbrirModal;
+		img.setAttribute('class', 'clickeable')
 		divImg.appendChild(img);
 
 		divproducto.appendChild(divImg);
@@ -114,18 +121,14 @@ function popularCatalogo() {
 	}
 }
 
-
-
-
-
-
-
 function crearCarrito() {
+	// Función que genera el hml sin contenido para el carrito de compras
 	minicarrito = d.createElement('div');
 	minicarrito.id = 'minicarrito';
 
 	let icon = d.createElement('i');
-	icon.setAttribute('class', 'fas fa-shopping-cart');
+	icon.setAttribute('class', 'fas fa-shopping-cart clickeable');
+	icon.addEventListener('click', toggleMostrarProductosEnCarrito);
 	minicarrito.appendChild(icon);
 
 	let pContadorItemsAgregados = d.createElement('p');
@@ -149,11 +152,17 @@ function crearCarrito() {
 	botonVerCarrito.addEventListener('click', toggleMostrarProductosEnCarrito);
 	minicarrito.appendChild(botonVerCarrito);
 
-	let botonComprar = d.createElement('button');
-	//botonVerCarrito.id = 'botonVerCarrito';
-	botonComprar.innerHTML = 'Comprar';
-	botonComprar.addEventListener('click', accederACheckout);
-	minicarrito.appendChild(botonComprar);
+	if (!enCheckout) {
+		//Solo agrego este botón si está en el catálogo.
+		//SI está en el checkout no debe estar
+
+		let botonComprar = d.createElement('button');
+		//botonVerCarrito.id = 'botonVerCarrito';
+		botonComprar.innerHTML = 'Comprar';
+		botonComprar.setAttribute('class', 'success');
+		botonComprar.addEventListener('click', accederACheckout);
+		minicarrito.appendChild(botonComprar);
+	}
 
 
 	main.prepend(minicarrito);
@@ -176,59 +185,8 @@ function crearCarrito() {
 
 }
 
-
-function AgregarACarrito() {
-	//console.log('disparé');
-
-	if (!agregoProductos) {
-		crearCarrito();
-		agregoProductos = true;
-	}
-
-	/*
-	* Esto se desestima por haberse incluido en la función "actualizarCantidadDeProductosEnCarrito"
-	// Cuando se actualizan los productos del minicarrito, actualizo los valores generales también
-	
-	contadorItemsAgregados.innerHTML = parseInt(contadorItemsAgregados.innerHTML) + 1;
-	//console.log(this.dataset.precio);
-	acumuladorTotal.innerHTML = parseInt(acumuladorTotal.innerHTML) + parseInt(this.dataset.precio);
-	*/
-	//Antes de pushear, hay que recorrer el array productos en carrito para saber si ya fue pusheado. En ese caso, hay que agregarle una unidad (en otro array).
-	// ...Ver despues
-
-	let indexOfProductoAAgregar = productosEnCarrito.indexOf(aProductos[aProductos.map(function (e) {
-		return e.id;
-	}).indexOf(parseInt(this.dataset.id))]);
-
-	if (indexOfProductoAAgregar == -1) {
-		// QUiere decir que no existía previamente en el carrito
-		indexOfProductoAAgregar = productosEnCarrito.push(aProductos[aProductos.map(function (e) {
-			return e.id;
-		}).indexOf(parseInt(this.dataset.id))]) - 1;
-		//console.log(productosEnCarrito);
-
-		if (mostrandoCarrito) {
-			//Si no existía el producto en el carrito, y se está mostrando, entonces actualizo el carrito
-			actualizarProductosEnCarrito();
-		}
-
-	}
-
-	//Ahora aumento su cantidad en el array de cantidades 
-	if (typeof cantidadesPorProductoEnCarrito[indexOfProductoAAgregar] != 'number') {
-		// Quiere decir qeu nunca hubo valor aquí
-		cantidadesPorProductoEnCarrito[indexOfProductoAAgregar] = 1;
-	} else {
-		cantidadesPorProductoEnCarrito[indexOfProductoAAgregar]++;
-	}
-	console.log(cantidadesPorProductoEnCarrito);
-
-	// Esto está medio sucio. Se llama dos veces esta funcion, cuando el producto es nuevo.
-	actualizarCantidadDeProductosEnCarrito();
-
-}
-
 function AbrirModal() {
+	// Función que crea la interfas de un modal de un producto, con su contenido 
 
 	let nombreDelProducto = aProductos[aProductos.map(function (e) {
 		return e.id;
@@ -303,8 +261,8 @@ function AbrirModal() {
 
 }
 
-
 function toggleMostrarProductosEnCarrito() {
+	// Muestra/Oculta los productos cargados en el carrito, en la interfas
 
 	//chequeo si ya se mostró el carrito, caso afirmativo no hago más nada.
 	if (!mostrandoCarrito) {
@@ -329,10 +287,19 @@ function toggleMostrarProductosEnCarrito() {
 }
 
 function actualizarProductosEnCarrito() {
+	// Refrezca el contenido del carrito en la interfas
+
 	if (!productosEnCarrito.length) {
 		// Si entro acá es porque se borraron todos los productos del carrito.
 		// Debo eliminar la sección
 		eliminarCarrito();
+
+
+		if (enCheckout) {
+			//Si estaba en instancia de checkout y entra acá,
+			//Es porque se borró el último producto del carrito y debo redirigir al catálogo
+			armarMainSectionCatalogo();
+		}
 
 	} else if (mostrandoCarrito) {
 		// Si entro acá es porque aún hay productos en carrito y esta sección está desplegada
@@ -349,13 +316,22 @@ function actualizarProductosEnCarrito() {
 	let divListado = d.createElement('div');
 	divListado.id = 'listadoProductosEnCarrito';
 
-	console.log(productosEnCarrito);
+	//console.log(productosEnCarrito);
 
 	for (let itemEnCarrito of productosEnCarrito) {
-		console.log(itemEnCarrito);
+		//console.log(itemEnCarrito);
 		let divProducto = d.createElement('div');
 		divProducto.dataset.id = itemEnCarrito.id;
 
+		let imgProd = d.createElement('span');
+		imgProd.style.backgroundImage = `url(${itemEnCarrito.imagen})`;
+		imgProd.title = itemEnCarrito.nombre;
+		imgProd.dataset.id = itemEnCarrito.id;
+		imgProd.addEventListener('click', AbrirModal);
+		imgProd.setAttribute('class', 'clickeable');
+		divProducto.appendChild(imgProd);
+
+		/*
 		let imgProd = d.createElement('img');
 		imgProd.src = itemEnCarrito.imagen;
 		imgProd.alt = itemEnCarrito.nombre;
@@ -363,7 +339,7 @@ function actualizarProductosEnCarrito() {
 		imgProd.dataset.id = itemEnCarrito.id;
 		imgProd.addEventListener('click', AbrirModal);
 		divProducto.appendChild(imgProd);
-
+*/
 		let p = d.createElement('p');
 		divProducto.appendChild(p);
 
@@ -373,6 +349,7 @@ function actualizarProductosEnCarrito() {
 			quitarDeCarrito(itemEnCarrito.id);
 		});
 		a.innerHTML = 'Quitar una unidad';
+		a.setAttribute('class', 'outline');
 		divProducto.appendChild(a);
 
 		divListado.appendChild(divProducto);
@@ -380,6 +357,8 @@ function actualizarProductosEnCarrito() {
 	}
 	if (productosEnCarrito.length) {
 		// Si aún hay productos en carrito, entonces muestro el botón para eliminarlos
+		flexBreak = d.createElement('div');
+		flexBreak.setAttribute('class', 'flexBreak');
 		minicarrito.appendChild(flexBreak);
 
 		let botonEliminarTodo = d.createElement('button');
@@ -387,6 +366,7 @@ function actualizarProductosEnCarrito() {
 		botonEliminarTodo.addEventListener('click', vaciarCarrito);
 		botonEliminarTodo.id = 'botonEliminarTodo';
 		botonEliminarTodo.innerHTML = 'Vaciar carrito';
+		botonEliminarTodo.setAttribute('class', 'error');
 		minicarrito.appendChild(botonEliminarTodo);
 	}
 
@@ -394,6 +374,7 @@ function actualizarProductosEnCarrito() {
 }
 
 function actualizarCantidadDeProductosEnCarrito() {
+	// Función que actualiza los valores de cantidad de objetos en carrito y precios parciales y totales
 
 	let cantidadTotalProductosEnCarrito = 0;
 	let valorTotalProductosEnCarrito = 0;
@@ -435,6 +416,300 @@ function actualizarCantidadDeProductosEnCarrito() {
 	}
 }
 
+function eliminarCarrito() {
+	// Elimina el html del carrito y resetea las flags
+	mostrandoCarrito = false;
+	minicarrito.remove();
+	agregoProductos = false;
+}
+
+function accederACheckout() {
+	// Vacío el main, y armo el contenido de la instancia de checkout.
+	while (main.firstChild) {
+		main.removeChild(main.lastChild);
+	}
+
+	enCheckout = true;
+	mostrandoCarrito = false;
+
+	crearCarrito();
+	/*actualizarProductosEnCarrito();*/
+	actualizarCantidadDeProductosEnCarrito();
+
+	let formularioCheckout = d.createElement('form');
+	formularioCheckout.id = 'formularioCheckout';
+
+	let fieldset = d.createElement('fieldset');
+	let legend = d.createElement('legend');
+	legend.innerHTML = 'Información del usuario';
+	fieldset.appendChild(legend);
+
+
+
+	let label = d.createElement('label');
+	label.htmlFor = 'formNombre';
+	label.innerHTML = 'Nombre';
+	fieldset.appendChild(label);
+	let input = d.createElement('input');
+	input.id = 'formNombre';
+	input.type = 'text';
+	input.name = 'formNombre';
+	input.required = true;
+	fieldset.appendChild(input);
+
+	label = d.createElement('label');
+	label.htmlFor = 'formTelefono';
+	label.innerHTML = 'Telefono';
+	fieldset.appendChild(label);
+	input = d.createElement('input');
+	input.id = 'formTelefono';
+	input.name = 'formTelefono';
+	input.type = 'number';
+	input.required = true;
+	fieldset.appendChild(input);
+
+	label = d.createElement('label');
+	label.htmlFor = 'formEmail';
+	label.innerHTML = 'E-mail';
+	fieldset.appendChild(label);
+	input = d.createElement('input');
+	input.id = 'formEmail';
+	input.name = 'formEmail';
+	input.type = 'email';
+	input.required = true;
+	fieldset.appendChild(input);
+
+	label = d.createElement('label');
+	label.htmlFor = 'formLugarEntrega';
+	label.innerHTML = 'Dirección de entrega';
+	fieldset.appendChild(label);
+	input = d.createElement('input');
+	input.id = 'formLugarEntrega';
+	input.name = 'formLugarEntrega';
+	input.type = 'text';
+	input.required = true;
+	fieldset.appendChild(input);
+
+	label = d.createElement('label');
+	label.htmlFor = 'formFechaEntrega';
+	label.innerHTML = 'Fecha de entrega solicitada';
+	fieldset.appendChild(label);
+	input = d.createElement('input');
+	input.id = 'formFechaEntrega';
+	input.name = 'formFechaEntrega';
+	input.type = 'date';
+	fieldset.appendChild(input);
+
+
+	formularioCheckout.appendChild(fieldset);
+
+
+
+	fieldset = d.createElement('fieldset');
+	legend = d.createElement('legend');
+	legend.innerHTML = 'Información del pago';
+	fieldset.appendChild(legend);
+
+	label = d.createElement('label');
+	label.htmlFor = 'formMetodoDePago';
+	label.innerHTML = 'Método de pago';
+	fieldset.appendChild(label);
+	let select = d.createElement('select');
+	select.id = 'formMetodoDePago';
+	select.name = 'formMetodoDePago';
+	select.addEventListener('change', ActualizarCuotas);
+
+	/*
+	 * Tengo que agregarle una función que se llame cada vez que cambia el valor del select,
+	 * para detectar si el selector de cuotas va enabled o disabled
+	 */
+
+	let option = d.createElement('option');
+	option.value = 'seleccione';
+	option.innerHTML = 'Seleccione una opción';
+	select.appendChild(option);
+
+	option = d.createElement('option');
+	option.value = 'mercadopago';
+	option.innerHTML = 'Mercadopago';
+	select.appendChild(option);
+
+	option = d.createElement('option');
+	option.value = 'credito';
+	option.innerHTML = 'Tarjeta de crédito';
+	select.appendChild(option);
+
+	option = d.createElement('option');
+	option.value = 'debito';
+	option.innerHTML = 'Tarjeta de débito';
+	select.appendChild(option);
+
+	option = d.createElement('option');
+	option.value = 'rapipago';
+	option.innerHTML = 'RapiPago';
+	select.appendChild(option);
+
+	option = d.createElement('option');
+	option.value = 'payu';
+	option.innerHTML = 'PayU';
+	select.appendChild(option);
+
+	fieldset.appendChild(select);
+
+
+	label = d.createElement('label');
+	label.htmlFor = 'formCuotas';
+	label.innerHTML = 'Cuotas';
+	fieldset.appendChild(label);
+	select = d.createElement('select');
+	select.id = 'formCuotas';
+	select.required = true;
+	select.name = 'formCuotas';
+
+	option = d.createElement('option');
+	option.value = '1';
+	option.innerHTML = '1 cuota';
+	option.disabled = true;
+	select.appendChild(option);
+
+	option = d.createElement('option');
+	option.value = '3';
+	option.innerHTML = '3 cuotas';
+	option.disabled = true;
+	select.appendChild(option);
+
+
+	option = d.createElement('option');
+	option.value = '6';
+	option.innerHTML = '6 cuotas';
+	option.disabled = true;
+	select.appendChild(option);
+
+	option = d.createElement('option');
+	option.value = '12';
+	option.innerHTML = '12 cuotas';
+	option.disabled = true;
+	select.appendChild(option);
+
+	option = d.createElement('option');
+	option.value = '18';
+	option.innerHTML = '18 cuotas';
+	option.disabled = true;
+	select.appendChild(option);
+
+	fieldset.appendChild(select);
+
+	formularioCheckout.appendChild(fieldset);
+
+	let flexBreak = d.createElement('div');
+	flexBreak.setAttribute('class', 'flexBreak');
+	formularioCheckout.appendChild(flexBreak);
+
+
+	let botonVolver = d.createElement('button');
+	botonVolver.innerHTML = 'Volver al catálogo';
+	botonVolver.addEventListener('click', armarMainSectionCatalogo);
+
+	formularioCheckout.appendChild(botonVolver);
+
+	let botonFinalizarCompra = d.createElement('button');
+	botonFinalizarCompra.type = 'submit';
+	botonFinalizarCompra.innerHTML = 'Finalizar Compra';
+	botonFinalizarCompra.setAttribute('class', 'success');
+	//botonFinalizarCompra.addEventListener('click', armarMainSectionCatalogo);
+
+	formularioCheckout.appendChild(botonFinalizarCompra);
+
+
+	/**
+	 * 
+	 * Agregar un preview de productos y valor total
+	 * 
+	 * 
+	 */
+
+
+	main.appendChild(formularioCheckout);
+}
+
+function ActualizarCuotas(e) {
+	//Actualiza las opciones del select de cuotas disponibles según lo que el usuario seleccione como medio de pago
+	let select = d.getElementById('formCuotas');
+
+	if (e.target.value == "seleccione") {
+		for (let i = 0; i < select.options.length; i++) {
+			select.options[i].disabled = true;
+		}
+		select.options[0].selected = false;
+	} else {
+		select.options[0].disabled = false;
+		select.options[0].selected = true;
+
+		for (let i = 1; i < select.options.length; i++) {
+
+			if (e.target.value == "credito" || e.target.value == "mercadopago") {
+				if (!(e.target.value == "mercadopago" && i == select.options.length - 1)) {
+					select.options[i].disabled = false;
+				}
+			} else {
+				select.options[i].disabled = true;
+			}
+		}
+	}
+}
+
+/**
+ * Funciones / Algoritmos internos
+ */
+
+function AgregarACarrito() {
+	// Función que gestiona la cola de productos en carrito (como estructura de datos)
+
+	if (!agregoProductos) {
+		crearCarrito();
+		agregoProductos = true;
+	}
+
+	/*
+	* Esto se desestima por haberse incluido en la función "actualizarCantidadDeProductosEnCarrito"
+	// Cuando se actualizan los productos del minicarrito, actualizo los valores generales también
+	
+	contadorItemsAgregados.innerHTML = parseInt(contadorItemsAgregados.innerHTML) + 1;
+	//console.log(this.dataset.precio);
+	acumuladorTotal.innerHTML = parseInt(acumuladorTotal.innerHTML) + parseInt(this.dataset.precio);
+	*/
+
+	let indexOfProductoAAgregar = productosEnCarrito.indexOf(aProductos[aProductos.map(function (e) {
+		return e.id;
+	}).indexOf(parseInt(this.dataset.id))]);
+
+	if (indexOfProductoAAgregar == -1) {
+		// QUiere decir que no existía previamente en el carrito
+		indexOfProductoAAgregar = productosEnCarrito.push(aProductos[aProductos.map(function (e) {
+			return e.id;
+		}).indexOf(parseInt(this.dataset.id))]) - 1;
+		//console.log(productosEnCarrito);
+
+		if (mostrandoCarrito) {
+			//Si no existía el producto en el carrito, y se está mostrando, entonces actualizo el carrito
+			actualizarProductosEnCarrito();
+		}
+
+	}
+
+	//Ahora aumento su cantidad en el array de cantidades 
+	if (typeof cantidadesPorProductoEnCarrito[indexOfProductoAAgregar] != 'number') {
+		// Quiere decir qeu nunca hubo valor aquí
+		cantidadesPorProductoEnCarrito[indexOfProductoAAgregar] = 1;
+	} else {
+		cantidadesPorProductoEnCarrito[indexOfProductoAAgregar]++;
+	}
+	//console.log(cantidadesPorProductoEnCarrito);
+
+	// Esto está medio sucio. Se llama dos veces esta funcion, cuando el producto es nuevo.
+	actualizarCantidadDeProductosEnCarrito();
+
+}
 
 function quitarDeCarrito(idProducto,
 	vaciar = false) {
@@ -470,195 +745,7 @@ function quitarDeCarrito(idProducto,
 	actualizarCantidadDeProductosEnCarrito();
 }
 
-
 function vaciarCarrito() {
+	//Alias para función quitardecarrito, solicitandole eliminar todo
 	quitarDeCarrito(0, true);
-}
-
-
-function eliminarCarrito() {
-	mostrandoCarrito = false;
-	minicarrito.remove();
-	agregoProductos = false;
-}
-
-
-
-
-function accederACheckout() {
-	// Vacío el main, y armo el contenido de la instancia de checkout.
-	while (main.firstChild) {
-		main.removeChild(main.lastChild);
-	}
-
-	let formularioCheckout = d.createElement('form');
-	let fieldset = d.createElement('fieldset');
-	let legend = d.createElement('legend');
-	legend.innerHTML = 'Información del usuario';
-	fieldset.appendChild(legend);
-
-
-
-	let label = d.createElement('label');
-	label.htmlFor = 'formNombre';
-	label.innerHTML = 'Nombre';
-	fieldset.appendChild(label);
-	let input = d.createElement('input');
-	input.id = 'formNombre';
-	input.type = 'text';
-	input.name = 'formNombre';
-	fieldset.appendChild(input);
-
-	label = d.createElement('label');
-	label.htmlFor = 'formTelefono';
-	label.innerHTML = 'Telefono';
-	fieldset.appendChild(label);
-	input = d.createElement('input');
-	input.id = 'formTelefono';
-	input.name = 'formTelefono';
-	input.type = 'number';
-	fieldset.appendChild(input);
-
-	label = d.createElement('label');
-	label.htmlFor = 'formEmail';
-	label.innerHTML = 'E-mail';
-	fieldset.appendChild(label);
-	input = d.createElement('input');
-	input.id = 'formEmail';
-	input.name = 'formEmail';
-	input.type = 'email';
-	fieldset.appendChild(input);
-
-	label = d.createElement('label');
-	label.htmlFor = 'formLugarEntrega';
-	label.innerHTML = 'Dirección de entrega';
-	fieldset.appendChild(label);
-	input = d.createElement('input');
-	input.id = 'formLugarEntrega';
-	input.name = 'formLugarEntrega';
-	input.type = 'text';
-	fieldset.appendChild(input);
-
-	label = d.createElement('label');
-	label.htmlFor = 'formFechaEntrega';
-	label.innerHTML = 'Fecha de entrega solicitada';
-	fieldset.appendChild(label);
-	input = d.createElement('input');
-	input.id = 'formFechaEntrega';
-	input.name = 'formFechaEntrega';
-	input.type = 'date';
-	fieldset.appendChild(input);
-
-
-	formularioCheckout.appendChild(fieldset);
-
-
-
-	fieldset = d.createElement('fieldset');
-	legend = d.createElement('legend');
-	legend.innerHTML = 'Información del pago';
-	fieldset.appendChild(legend);
-
-	label = d.createElement('label');
-	label.htmlFor = 'formMetodoDePago';
-	label.innerHTML = 'Método de pago';
-	fieldset.appendChild(label);
-	let select = d.createElement('select');
-	select.id = 'formMetodoDePago';
-	select.name = 'formMetodoDePago';
-
-	/*
-	 * Tengo que agregarle una función que se llame cada vez que cambia el valor del select,
-	 * para detectar si el selector de cuotas va enabled o disabled
-	 */
-
-	let option = d.createElement('option');
-	option.value = 'mercadopago';
-	option.innerHTML = 'Mercadopago';
-	select.appendChild(option);
-
-	option = d.createElement('option');
-	option.value = 'credito';
-	option.innerHTML = 'Tarjeta de crédito';
-	select.appendChild(option);
-
-	option = d.createElement('option');
-	option.value = 'debito';
-	option.innerHTML = 'Tarjeta de débito';
-	select.appendChild(option);
-
-	option = d.createElement('option');
-	option.value = 'rapipago';
-	option.innerHTML = 'RapiPago';
-	select.appendChild(option);
-
-	option = d.createElement('option');
-	option.value = 'payu';
-	option.innerHTML = 'PayU';
-	select.appendChild(option);
-
-	fieldset.appendChild(select);
-
-
-	label = d.createElement('label');
-	label.htmlFor = 'formCuotas';
-	label.innerHTML = 'Cuotas';
-	fieldset.appendChild(label);
-	select = d.createElement('select');
-	select.id = 'formCuotas';
-	select.name = 'formCuotas';
-
-	option = d.createElement('option');
-	option.value = '1';
-	option.innerHTML = '1 cuota';
-	select.appendChild(option);
-
-	option = d.createElement('option');
-	option.value = '3';
-	option.innerHTML = '3 cuotas';
-	select.appendChild(option);
-
-	option = d.createElement('option');
-	option.value = '6';
-	option.innerHTML = '6 cuotas';
-	select.appendChild(option);
-
-	option = d.createElement('option');
-	option.value = '12';
-	option.innerHTML = '12 cuotas';
-	select.appendChild(option);
-
-	option = d.createElement('option');
-	option.value = '18';
-	option.innerHTML = '18 cuotas';
-	select.appendChild(option);
-
-	fieldset.appendChild(select);
-
-	formularioCheckout.appendChild(fieldset);
-
-
-	let botonVolver = d.createElement('button');
-	botonVolver.innerHTML = 'Volver al catálogo';
-	botonVolver.addEventListener('click', armarMainSectionCatalogo);
-
-	formularioCheckout.appendChild(botonVolver);
-
-	let botonFinalizarCompra = d.createElement('button');
-	botonFinalizarCompra.type = 'submit';
-	botonFinalizarCompra.innerHTML = 'Finalizar Compra';
-	//botonFinalizarCompra.addEventListener('click', armarMainSectionCatalogo);
-
-	formularioCheckout.appendChild(botonFinalizarCompra);
-
-
-	/**
-	 * 
-	 * Agregar un preview de productos y valor total
-	 * 
-	 * 
-	 */
-
-
-	main.appendChild(formularioCheckout);
 }

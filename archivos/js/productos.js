@@ -19,7 +19,7 @@ let aProductos = [
 	},
 	{	
 		id: 3,
-		nombre: 'Cerrucho pa\' cortar carne',
+		nombre: 'Serrucho pa\' cortar carne',
 		imagen: 'imgs/cerrucho.jpg',
 		descripcion: 'Con esto cortás cualquier lonja de carne, viva o muerta. Nada te detendrá. A por ello campeón@ !',
 		precio: 300,
