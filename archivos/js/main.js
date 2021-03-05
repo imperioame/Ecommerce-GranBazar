@@ -71,6 +71,7 @@ function popularCatalogo() {
 
 		let divproducto = d.createElement('div');
 		divproducto.dataset.id = producto.id;
+		divproducto.setAttribute('class','divproducto');
 
 		let divImg = d.createElement('div');
 		divImg.setAttribute('class', 'productImageContainer');
@@ -222,7 +223,11 @@ function AbrirModal() {
 	a.addEventListener('click', function () {
 		div.remove();
 	});
-	a.innerHTML = 'X';
+	let icon = d.createElement('i');
+	icon.setAttribute('class','fas fa-times');
+
+	a.appendChild(icon);
+	//a.innerHTML = 'X';
 	div.appendChild(a);
 
 	let img = d.createElement('img');
@@ -454,6 +459,7 @@ function accederACheckout() {
 	input.id = 'formNombre';
 	input.type = 'text';
 	input.name = 'formNombre';
+	input.placeholder = 'Amaranto Benitez';
 	input.required = true;
 	fieldset.appendChild(input);
 
@@ -465,6 +471,7 @@ function accederACheckout() {
 	input.id = 'formTelefono';
 	input.name = 'formTelefono';
 	input.type = 'number';
+	input.placeholder = '01155556666';
 	input.required = true;
 	fieldset.appendChild(input);
 
@@ -476,6 +483,7 @@ function accederACheckout() {
 	input.id = 'formEmail';
 	input.name = 'formEmail';
 	input.type = 'email';
+	input.placeholder = 'AmarantoBenitez@email.com';
 	input.required = true;
 	fieldset.appendChild(input);
 
@@ -487,6 +495,7 @@ function accederACheckout() {
 	input.id = 'formLugarEntrega';
 	input.name = 'formLugarEntrega';
 	input.type = 'text';
+	input.placeholder = 'Calle 192 1935, 1 A';
 	input.required = true;
 	fieldset.appendChild(input);
 
@@ -733,9 +742,9 @@ function quitarDeCarrito(idProducto,
 			if (cantidadesPorProductoEnCarrito[indiceDelProducto] == 0) {
 				// Este producto no cuenta con más unidades en el carrito. Lo borro del array y refresheo la lista de productos
 				let deleted = cantidadesPorProductoEnCarrito.splice(indiceDelProducto, 1);
-				console.warn('se eliminó el obj: ' + deleted + ' de la posición ' + indiceDelProducto);
+				//console.warn('se eliminó el obj: ' + deleted + ' de la posición ' + indiceDelProducto);
 				deleted = productosEnCarrito.splice(indiceDelProducto, 1);
-				console.warn('se eliminó el obj: ' + deleted + ' de la posición ' + indiceDelProducto);
+				//console.warn('se eliminó el obj: ' + deleted + ' de la posición ' + indiceDelProducto);
 				actualizarProductosEnCarrito();
 			}
 		} else {
