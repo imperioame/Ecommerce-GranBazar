@@ -233,6 +233,7 @@ function AbrirModal() {
 	let img = d.createElement('img');
 	img.src = srcImagen;
 	img.alt = nombreDelProducto;
+	img.title = nombreDelProducto;
 	container.appendChild(img);
 
 	let h3 = d.createElement('h3');
