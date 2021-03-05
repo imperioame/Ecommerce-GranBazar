@@ -71,7 +71,7 @@ function popularCatalogo() {
 
 		let divproducto = d.createElement('div');
 		divproducto.dataset.id = producto.id;
-		divproducto.setAttribute('class','divproducto');
+		divproducto.setAttribute('class', 'divproducto');
 
 		let divImg = d.createElement('div');
 		divImg.setAttribute('class', 'productImageContainer');
@@ -208,12 +208,12 @@ function AbrirModal() {
 	div.setAttribute('class', 'modal');
 
 	div.addEventListener('click', function (e) {
-		if (e.path.length <= 5) {
+		var path = e.path || (e.composedPath && e.composedPath());
+		if (path.length <= 5) {
 			div.remove();
 		}
 		//console.log(e);
 	}, true);
-
 
 	let container = d.createElement('div');
 	container.setAttribute('class', 'containerModal');
@@ -224,7 +224,7 @@ function AbrirModal() {
 		div.remove();
 	});
 	let icon = d.createElement('i');
-	icon.setAttribute('class','fas fa-times');
+	icon.setAttribute('class', 'fas fa-times');
 
 	a.appendChild(icon);
 	//a.innerHTML = 'X';
